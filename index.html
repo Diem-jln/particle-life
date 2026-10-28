@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>CRYO-ELECTRON BIOME • TITAN KRIOS G4 & GRAND ARM 300cF PLATFORM</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body class="instrument-active">
+
+  <!-- ========================================================= -->
+  <!-- OVERLAYS ÓPTICOS Y DETECTORES CRYO-EM / STEM               -->
+  <!-- ========================================================= -->
+  <div id="optical-stack" aria-hidden="true">
+    <div id="cryo-aperture" class="optical-layer"></div>
+    <div id="diffraction-fresnel" class="optical-layer"></div>
+    <div id="schmidt-trigger-lines" class="optical-layer"></div>
+    <div id="reticle-grid" class="optical-layer"></div>
+    <div id="chromatic-fringes" class="optical-layer"></div>
+    <div id="shot-noise-film" class="optical-layer"></div>
+    <div id="vacuum-scanline" class="optical-layer"></div>
+  </div>
+
+  <!-- Contenedor del Lienzo WebGL -->
+  <main id="viewport-workspace">
+    <div id="canvas-container"></div>
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- CABECERA SUPERIOR: TELEMETRÍA DEL CANÓN DE ELECTRONES FEG  -->
+  <!-- ========================================================= -->
+  <header id="top-instrument-bar">
+    <div class="brand-cluster">
+      <div class="sensor-indicator live"></div>
+      <div class="instrument-title">
+        <span class="mfr">FEI / THERMO SCIENTIFIC</span>
+        <span class="model">TITAN KRIOS G4 • X-FEG CRYO-STEM</span>
+      </div>
+    </div>
+
+    <div class="telemetry-deck">
+      <div class="tel-item">
+        <span class="tel-label">ACCELERATING VOLTAGE</span>
+        <span class="tel-val" id="tel-voltage">300.0 kV</span>
+      </div>
+      <div class="tel-divider"></div>
+      <div class="tel-item">
+        <span class="tel-label">EMISSION CURRENT</span>
+        <span class="tel-val" id="tel-emission">145.2 µA</span>
+      </div>
+      <div class="tel-divider"></div>
+      <div class="tel-item">
+        <span class="tel-label">VACUUM (P1 COLUMN)</span>
+        <span class="tel-val" id="tel-vacuum">1.2 × 10⁻⁷ Pa</span>
+      </div>
+      <div class="tel-divider"></div>
+      <div class="tel-item">
+        <span class="tel-label">SPECIMEN TEMP</span>
+        <span class="tel-val cyro-highlight" id="tel-temp">77.4 K (LN₂)</span>
+      </div>
+      <div class="tel-divider"></div>
+      <div class="tel-item">
+        <span class="tel-label">DEFOCUS (Δf)</span>
+        <span class="tel-val" id="tel-defocus">-1.85 µm</span>
+      </div>
+      <div class="tel-divider"></div>
+      <div class="tel-item">
+        <span class="tel-label">MAGNIFICATION</span>
+        <span class="tel-val" id="tel-mag">105,000×</span>
+      </div>
+    </div>
+
+    <div class="audio-master-module">
+      <button id="btn-audio-toggle" class="btn-stem" type="button">
+        <span class="btn-icon">🔊</span>
+        <span class="btn-text">SONAR RES: OFF</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================= -->
+  <!-- PANEL LATERAL IZQUIERDO: TAXONOMÍA DE 8 CLADOS BIOLÓGICOS  -->
+  <!-- ========================================================= -->
+  <aside id="panel-taxonomy" class="docked-panel">
+    <div class="panel-inner">
+      <div class="panel-section-title">
+        <span class="sec-id">SEC-01</span>
+        <h3>CLADOS SINTÉTICOS IDENTIFICADOS</h3>
+      </div>
+
+      <div class="clade-list" id="clade-roster">
+        <!-- Clado 0 -->
+        <div class="clade-card active" data-clade="0">
+          <div class="clade-color-chip chip-0"></div>
+          <div class="clade-info">
+            <div class="clade-name-row">
+              <span class="clade-title">Fitomembrana Lipídica</span>
+              <span class="clade-pop" id="pop-0">2400</span>
+            </div>
+            <p class="clade-desc">Fosfolípidos anfipáticos. Autoensamblaje de micelas y paredes vesiculares elásticas.</p>
+            <div class="clade-meter"><div class="meter-bar bar-0" style="width: 80%;"></div></div>
+          </div>
+        </div>
+
+        <!-- Clado 1 -->
+        <div class="clade-card" data-clade="1">
+          <div class="clade-color-chip chip-1"></div>
+          <div class="clade-info">
+            <div class="clade-name-row">
+              <span class="clade-title">Organelo / Nucleoide</span>
+              <span class="clade-pop" id="pop-1">1800</span>
+            </div>
+            <p class="clade-desc">Ácido nucleico denso a electrones. Presión oncótica central y endosimbiosis obligada.</p>
+            <div class="clade-meter"><div class="meter-bar bar-1" style="width: 60%;"></div></div>
+          </div>
+        </div>
+
+        <!-- Clado 2 -->
+        <div class="clade-card" data-clade="2">
+          <div class="clade-color-chip chip-2"></div>
+          <div class="clade-info">
+            <div class="clade-name-row">
+              <span class="clade-title">Virión Lítico Alfa</span>
+              <span class="clade-pop" id="pop-2">1200</span>
+            </div>
+            <p class="clade-desc">Cápsides proteicas helicoidales. Disrupción enzimática de capas lipídicas periféricas.</p>
+            <div class="clade-meter"><div class="meter-bar bar-2" style="width: 40%;"></div></div>
+          </div>
+        </div>
+
+        <!-- Clado 3 -->
+        <div class="clade-card" data-clade="3">
+          <div class="clade-color-chip chip-3"></div>
+          <div class="clade-info">
+            <div class="clade-name-row">
+              <span class="clade-title">Cilios / Tubulina Motriz</span>
+              <span class="clade-pop" id="pop-3">1500</span>
+            </div>
+            <p class="clade-desc">Polímeros de flagelos quimiotácticos acoplados con momento angular hidrodinámico.</p>
+            <div class="clade-meter"><div class="meter-bar bar-3" style="width: 50%;"></div></div>
+          </div>
+        </div>
+
+        <!-- Clado 4 -->
+        <div class="clade-card" data-clade="4">
+          <div class="clade-color-chip chip-4"></div>
+          <div class="clade-info">
+            <div class="clade-name-row">
+              <span class="clade-title">Enzima Catalizadora Ámbar</span>
+              <span class="clade-pop" id="pop-4">1300</span>
+            </div>
+            <p class="clade-desc">Complejos de transferencia redox. Provocan polarización de filamentos celulares.</p>
+            <div class="clade-meter"><div class="meter-bar bar-4" style="width: 45%;"></div></div>
+          </div>
+        </div>
+
+        <!-- Clado 5 -->
+        <div class="clade-card" data-clade="5">
+          <div class="clade-color-chip chip-5"></div>
+          <div class="clade-info">
+            <div class="clade-name-row">
+              <span class="clade-title">Bio-Cristal Semiconductor</span>
+              <span class="clade-pop" id="pop-5">1100</span>
+            </div>
+            <p class="clade-desc">Redes minerales piezoeléctricas. Actúan como anclas espaciales de masa pesada.</p>
+            <div class="clade-meter"><div class="meter-bar bar-5" style="width: 35%;"></div></div>
+          </div>
+        </div>
+
+        <!-- Clado 6 -->
+        <div class="clade-card" data-clade="6">
+          <div class="clade-color-chip chip-6"></div>
+          <div class="clade-info">
+            <div class="clade-name-row">
+              <span class="clade-title">Matriz Bio-Luminiscente</span>
+              <span class="clade-pop" id="pop-6">1400</span>
+            </div>
+            <p class="clade-desc">Geles coloidales de alta reactividad fotónica. Emisión aditiva de luz fluorescente.</p>
+            <div class="clade-meter"><div class="meter-bar bar-6" style="width: 48%;"></div></div>
+          </div>
+        </div>
+
+        <!-- Clado 7 -->
+        <div class="clade-card" data-clade="7">
+          <div class="clade-color-chip chip-7"></div>
+          <div class="clade-info">
+            <div class="clade-name-row">
+              <span class="clade-title">Priones Neurotóxicos</span>
+              <span class="clade-pop" id="pop-7">1300</span>
+            </div>
+            <p class="clade-desc">Plegamientos beta aberrantes. Provocan agregaciones caóticas y fibrilaciones masivas.</p>
+            <div class="clade-meter"><div class="meter-bar bar-7" style="width: 44%;"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Métricas Fisiológicas Globales -->
+      <div class="biome-vitals">
+        <div class="vital-row">
+          <span>ENTROPÍA ESPACIAL:</span>
+          <span id="vital-entropy">2.418 bits</span>
+        </div>
+        <div class="vital-row">
+          <span>ENERGÍA CINÉTICA MEDIA:</span>
+          <span id="vital-energy">142.6 pJ</span>
+        </div>
+        <div class="vital-row">
+          <span>COHESIÓN DE ENJAMBRE:</span>
+          <span id="vital-cohesion">88.4%</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ========================================================= -->
+  <!-- PANEL LATERAL DERECHO: CONSOLA DE ÓPTICA Y CONTROL FÍSICO  -->
+  <!-- ========================================================= -->
+  <aside id="panel-controls" class="docked-panel">
+    <div class="panel-inner">
+      <div class="panel-section-title">
+        <span class="sec-id">SEC-02</span>
+        <h3>PARÁMETROS DEL CONDENSADOR CRYO</h3>
+      </div>
+
+      <!-- Presets de Morfogénesis -->
+      <div class="sub-panel">
+        <label class="block-label">ARQUETIPOS DE VIDA ARTIFICIAL</label>
+        <div class="preset-grid">
+          <button id="preset-organelles" class="btn-ctrl active" type="button">1. CÉLULAS COMPLETAS</button>
+          <button id="preset-phage-war" class="btn-ctrl" type="button">2. ATAQUE VIRAL BACTERIÓFAGO</button>
+          <button id="preset-neural-net" class="btn-ctrl" type="button">3. TEJIDO SINÁPTICO AXONAL</button>
+          <button id="preset-quiescent" class="btn-ctrl" type="button">4. BIOCRÉCIMIENTO CRISTALINO</button>
+          <button id="preset-flagella" class="btn-ctrl" type="button">5. PROPULSIÓN ZOOPLANCTON</button>
+          <button id="preset-primordial" class="btn-ctrl" type="button">6. CALDO PREBIÓTICO TÉRMICO</button>
+        </div>
+      </div>
+
+      <!-- Deslizadores de Calibración -->
+      <div class="sub-panel sliders-group">
+        <div class="slider-field">
+          <div class="slider-header">
+            <span>Viscosidad del Medio Vítreo (μ)</span>
+            <output id="out-viscosity">0.865</output>
+          </div>
+          <input type="range" id="rng-viscosity" min="0.70" max="0.98" step="0.005" value="0.865">
+        </div>
+
+        <div class="slider-field">
+          <div class="slider-header">
+            <span>Radio de Búsqueda Sensorial (R_max)</span>
+            <output id="out-rmax">145 nm</output>
+          </div>
+          <input type="range" id="rng-rmax" min="80" max="240" step="5" value="145">
+        </div>
+
+        <div class="slider-field">
+          <div class="slider-header">
+            <span>Fuerza de Exclusión Nuclear (Core Rep.)</span>
+            <output id="out-repulsion">3.40×</output>
+          </div>
+          <input type="range" id="rng-repulsion" min="1.0" max="6.0" step="0.1" value="3.4">
+        </div>
+
+        <div class="slider-field">
+          <div class="slider-header">
+            <span>Paso de Integración Temporal (Δt)</span>
+            <output id="out-dt">0.45 fs</output>
+          </div>
+          <input type="range" id="rng-dt" min="0.10" max="0.90" step="0.02" value="0.45">
+        </div>
+
+        <div class="slider-field">
+          <div class="slider-header">
+            <span>Intensidad de Glow Bioluminiscente</span>
+            <output id="out-glow">1.75</output>
+          </div>
+          <input type="range" id="rng-glow" min="0.5" max="3.5" step="0.05" value="1.75">
+        </div>
+      </div>
+
+      <!-- Herramientas de Intervención del Haz de Electrones -->
+      <div class="sub-panel">
+        <label class="block-label">MODO DE SONDA ELECTRÓNICA (CURSOR)</label>
+        <div class="probe-selector">
+          <button class="btn-probe active" data-probe="tweezer" type="button">
+            <span class="p-icon">🎯</span>
+            <span class="p-text">Pinza Óptica Láser</span>
+          </button>
+          <button class="btn-probe" data-probe="vortex" type="button">
+            <span class="p-icon">🌀</span>
+            <span class="p-text">Vórtice Centrífugo</span>
+          </button>
+          <button class="btn-probe" data-probe="lysis" type="button">
+            <span class="p-icon">⚡</span>
+            <span class="p-text">Haz Lítico / Dispersor</span>
+          </button>
+          <button class="btn-probe" data-probe="inoculate" type="button">
+            <span class="p-icon">💉</span>
+            <span class="p-text">Microinyector Epigenético</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Operaciones Genéticas & Disrupción -->
+      <div class="sub-panel action-deck">
+        <button id="btn-mutate-mild" class="btn-sci" type="button">
+          🧬 DERIVA GENÉTICA GRADUAL (+15%)
+        </button>
+        <button id="btn-mutate-hard" class="btn-sci danger" type="button">
+          ☣ SALTO EVOLUTIVO RADICAL (MUTACIÓN TOTAL)
+        </button>
+        <button id="btn-thermal-shock" class="btn-sci warning" type="button">
+          🔥 CHOQUE TÉRMICO (DISPERSIÓN TÉRMICA)
+        </button>
+        <button id="btn-freeze-reboot" class="btn-sci reset" type="button">
+          ❄ VITRIFICACIÓN RÁPIDA (REINICIAR ESPACIO)
+        </button>
+      </div>
+
+    </div>
+  </aside>
+
+  <!-- ========================================================= -->
+  <!-- BARRA INFERIOR: MATRIZ DE INTERACCIÓN 8x8 & MONITOR STEM   -->
+  <!-- ========================================================= -->
+  <footer id="bottom-instrument-deck">
+    <div class="deck-expander">
+      <div class="deck-title-row">
+        <span class="deck-tag">MATRIZ DE AFINIDAD BIOQUÍMICA (M_ij: 8 × 8 CLADOS)</span>
+        <div class="matrix-legend">
+          <span class="sq-rep"></span> Repulsión (-)
+          <span class="sq-neu"></span> Neutro (0)
+          <span class="sq-att"></span> Atracción (+)
+        </div>
+      </div>
+      
+      <!-- Contenedor de la Matriz Dinámica -->
+      <div id="affinity-matrix-grid" class="matrix-table-container">
+        <!-- Generado en main.js -->
+      </div>
+    </div>
+
+    <!-- Módulo de Inspección Local STEM / FFT en vivo -->
+    <div class="stem-monitor-module">
+      <div class="monitor-header">
+        <span>DETECTOR DE DIFRACCIÓN TEM (FFT)</span>
+        <span id="fps-badge" class="badge-fps">FPS: 60</span>
+      </div>
+      <div class="monitor-frame">
+        <canvas id="stem-fft-canvas" width="140" height="90"></canvas>
+        <div class="fft-lines"></div>
+      </div>
+      <div class="total-specimens-readout">
+        <span>ESPECÍMENES ACTIVOS:</span>
+        <strong id="lbl-total-particles">12,000</strong>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================================================= -->
+  <!-- MODAL / NOTIFICACIÓN HUD DE DISRUPCIÓN GENÓMICA           -->
+  <!-- ========================================================= -->
+  <div id="hud-announcer" class="announcer-hidden">
+    <div class="announcer-box">
+      <span class="ann-badge">ALERTA INSTRUMENTAL</span>
+      <p id="ann-message">Reconfiguración de afinidades moleculares completada con éxito.</p>
+    </div>
+  </div>
+
+  <!-- Script Principal de Orquestación -->
+  <script type="module" src="main.js"></script>
+</body>
+</html>
